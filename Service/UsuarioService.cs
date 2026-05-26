@@ -1,0 +1,57 @@
+using Backend.DTOs;
+using Backend.Models;
+using Backend.Repositories.Interfaces;
+using Backend.Services.Interfaces;
+using BCrypt.Net;
+
+namespace Backend.Services
+{
+    public class UsuarioService : IUsuarioService
+    {
+        private readonly IUsuarioRepository _repo;
+
+        public UsuarioService(IUsuarioRepository repo)
+        {
+            _repo = repo;
+        }
+
+        public async Task<UserResponse> RegistrarAsync(RegisterUserRequest req)
+        {
+            // 1) checar e-mail único
+            if (await _repo.EmailExisteAsync(req.Email))
+                throw new InvalidOperationException("Email já cadastrado.");
+
+            // 2) hash de senha
+            var hash = BCrypt.Net.BCrypt.HashPassword(req.Senha);
+
+            // 3) montar entidade
+            var usuario = new Usuario
+            {
+                Nome = req.Nome,
+                Email = req.Email,
+                Senha = hash,
+                Classe = req.Classe,
+                TipoUsuario = req.TipoUsuario,
+                Nivel = 1,
+                Reputacao = 0.0M,
+                DataCadastro = DateTime.Now
+            };
+
+            // 4) persistir
+            var created = await _repo.AddAsync(usuario);
+
+            // 5) mapear resposta (sem senha)
+            return new UserResponse
+            {
+                Id = created.Id,
+                Nome = created.Nome,
+                Email = created.Email,
+                Classe = created.Classe,
+                Nivel = created.Nivel,
+                TipoUsuario = created.TipoUsuario,
+                Reputacao = created.Reputacao,
+                DataCadastro = created.DataCadastro
+            };
+        }
+    }
+}
