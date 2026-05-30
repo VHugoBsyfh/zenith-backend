@@ -34,15 +34,15 @@ namespace Backend.Services
             await _repo.AtualizarStatusAsync(missaoAceita, "Concluída");
             await _missoes.SetStatusAsync(missaoAceita.IdMissao, "Concluída");
 
-            var historico = new HistoricoMissao
-            {
-                IdUsuario = solicitanteId,
-                //IdMissaoAceita = idMissaoAceita,
-                Resultado = "Concluída",
-                DataRegistro = DateTime.Now
-            };
+            // var historico = new HistoricoMissao
+            // {
+            //     IdUsuario = solicitanteId,
+            //     //IdMissaoAceita = idMissaoAceita,
+            //     Resultado = "Concluída",
+            //     DataRegistro = DateTime.Now
+            // };
 
-            await _repo.RegistrarHistoricoAsync(historico);
+            //await _repo.RegistrarHistoricoAsync(historico);
 
             // ▼ NOVA PARTE: GANHO DE REPUTAÇÃO (+10) ▼
             decimal ganhoReputacao = 10.0m;

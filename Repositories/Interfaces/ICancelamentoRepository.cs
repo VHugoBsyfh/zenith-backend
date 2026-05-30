@@ -4,7 +4,7 @@ namespace Backend.Repositories.Interfaces
 {
     public interface ICancelamentoRepository
     {
-        Task<MissaoAceita?> GetAtivaAsync(int idMissaoAceita);
+        Task<MissaoAceita?> GetAtivaAsync(int idMissao);
         Task AtualizarParaCanceladaAsync(MissaoAceita reg, string motivo);
         Task RegistrarPenalidadeAsync(Penalidade p);
         Task<List<int>> ListarMembrosDoGrupoAsync(int idGrupo);
