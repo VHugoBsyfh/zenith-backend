@@ -37,9 +37,19 @@ namespace Backend.Controllers
                 await service.CancelarAsync(id, userId, request);
                 return Ok(new { message = "Missão cancelada.", penalidade = new { reputacaoPerdida = request.ReputacaoPerdida, bloqueioDias = request.BloqueioDias } });
             }
-            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
-            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // ▼ A CORREÇÃO ESTÁ AQUI ▼
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
         }
     }
 }

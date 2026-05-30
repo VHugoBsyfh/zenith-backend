@@ -11,9 +11,10 @@ namespace Backend.Services
         private readonly IGrupoRepository _grupos;
         private readonly ReputacaoService _reputacaoService;
 
-        public CancelamentoService(ICancelamentoRepository repo, IGrupoRepository grupos, ReputacaoService reputacaoService)
+        public CancelamentoService(ICancelamentoRepository repo, IMissaoRepository missoes, IGrupoRepository grupos, ReputacaoService reputacaoService)
         {
             _repo = repo;
+            _missoes = missoes;
             _grupos = grupos;
             _reputacaoService = reputacaoService;
         }
