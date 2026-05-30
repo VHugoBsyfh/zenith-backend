@@ -3,8 +3,6 @@ using Backend.DTOs;
 using Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-//teste
-
 namespace Backend.Controllers
 {
     [ApiController]
@@ -22,10 +20,12 @@ namespace Backend.Controllers
             {
                 var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
                 await _service.ConcluirAsync(id, userId);
-                return Ok(new { message = "Missão concluída com sucesso!" });
+
+                return Ok(new { message = "Missão concluída com sucesso! Aventureiro(s) ganhou(aram) 10 de reputação." });
             }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            // ▼ CORREÇÃO DO ERRO 500 AQUI ▼
+            catch (UnauthorizedAccessException ex) { return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message }); }
             catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
         }
         [HttpPut("{id:int}/cancelar")]

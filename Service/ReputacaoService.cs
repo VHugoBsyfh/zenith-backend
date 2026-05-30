@@ -13,13 +13,8 @@ namespace Backend.Services
             var avals = await _repo.ListarAvaliacoesRecebidasAsync(idUsuario, max: 50);
 
             // Busca as penalidades e os dias de bloqueio em paralelo (opcional, mas eficiente)
-            var totalPenTask = _repo.SomatorioPenalidadesAsync(idUsuario);
-            var totalDiasBloqueioTask = _repo.SomatorioDiasBloqueioAsync(idUsuario);
-
-            await Task.WhenAll(totalPenTask, totalDiasBloqueioTask);
-
-            var totalPen = totalPenTask.Result;
-            var totalDiasBloqueio = totalDiasBloqueioTask.Result;
+            var totalPen = await _repo.SomatorioPenalidadesAsync(idUsuario);
+            var totalDiasBloqueio = await _repo.SomatorioDiasBloqueioAsync(idUsuario);
 
             if (avals.Count == 0)
             {
