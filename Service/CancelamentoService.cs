@@ -7,6 +7,7 @@ namespace Backend.Services
     public class CancelamentoService
     {
         private readonly ICancelamentoRepository _repo;
+        private readonly IMissaoRepository _missoes;
         private readonly IGrupoRepository _grupos;
         private readonly ReputacaoService _reputacaoService;
 
@@ -32,8 +33,11 @@ namespace Backend.Services
             if (!autorizado)
                 throw new UnauthorizedAccessException("Você não está autorizado a cancelar esta missão.");
 
-            // Atualiza status para Cancelada (aceitação e missão)
+            // 1. Atualiza status do registro de aceitação para Cancelada
             await _repo.AtualizarParaCanceladaAsync(reg, req.Motivo);
+
+            // 2. AQUI ESTÁ A MÁGICA: Limpamos o aventureiro da missão principal e voltamos ela para Disponível
+            await _missoes.DesvincularAventureiroAsync(reg.IdMissao, "Disponível");
 
             // Penalidades
             var delta = -Math.Abs(req.ReputacaoPerdida); // sempre negativo
@@ -47,7 +51,6 @@ namespace Backend.Services
                 foreach (var idMembro in membros)
                     await AplicarPenalidadeUsuario(idMembro, reg.Id, req, delta);
             }
-            
         }
 
         private async Task AplicarPenalidadeUsuario(int idUsuario, int idMissaoAceita, CancelarMissaoRequest req, decimal deltaRep)

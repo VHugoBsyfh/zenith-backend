@@ -21,6 +21,7 @@ namespace Backend.Repositories.Interfaces
         Task<Missao?> GetByIdForUpdateAsync(int id);
         Task<bool> HasVinculosAsync(int missaoId);
         Task SetStatusAsync(int idMissao, string novoStatus);
+        Task DesvincularAventureiroAsync(int idMissao, string novoStatus);
         Task VincularAventureiroAsync(int idMissao, int idAventureiro, string novoStatus);
     }
 }

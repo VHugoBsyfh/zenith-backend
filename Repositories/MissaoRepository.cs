@@ -111,6 +111,16 @@ namespace Backend.Repositories
                 await _ctx.SaveChangesAsync();
             }
         }
+        public async Task DesvincularAventureiroAsync(int idMissao, string novoStatus)
+        {
+            var m = await _ctx.Missoes.FirstOrDefaultAsync(x => x.Id == idMissao);
+            if (m != null)
+            {
+                m.IdAventureiro = null; // A mágica reversa acontece aqui!
+                m.Status = novoStatus;
+                await _ctx.SaveChangesAsync();
+            }
+        }
         public async Task VincularAventureiroAsync(int idMissao, int idAventureiro, string novoStatus)
         {
             var m = await _ctx.Missoes.FirstOrDefaultAsync(x => x.Id == idMissao);
