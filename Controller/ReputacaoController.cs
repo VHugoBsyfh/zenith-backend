@@ -11,13 +11,19 @@ namespace Backend.Controllers
         private readonly ReputacaoService _service;
         public ReputacaoController(ReputacaoService service) => _service = service;
 
-        // Força o recálculo (útil em testes)
         [Authorize]
         [HttpPost("{idUsuario:int}/recalcular")]
         public async Task<IActionResult> Recalcular(int idUsuario)
         {
-            var rep = await _service.RecalcularAsync(idUsuario);
-            return Ok(new { usuarioId = idUsuario, reputacao = rep });
+            // O resultado agora é uma tupla com as propriedades Reputacao e BloqueioDias
+            var resultado = await _service.RecalcularAsync(idUsuario);
+            
+            return Ok(new 
+            { 
+                usuarioId = idUsuario, 
+                reputacao = resultado.Reputacao,
+                bloqueioDias = resultado.BloqueioDias // Mapeado para o JSON!
+            });
         }
     }
 }

@@ -7,5 +7,6 @@ namespace Backend.Repositories.Interfaces
         Task<List<Avaliacao>> ListarAvaliacoesRecebidasAsync(int idUsuario, int max = 50);
         Task<decimal> SomatorioPenalidadesAsync(int idUsuario);
         Task AtualizarReputacaoAsync(int idUsuario, decimal reputacao);
+        Task<int> SomatorioDiasBloqueioAsync(int idUsuario);
     }
 }

@@ -20,13 +20,25 @@ namespace Backend.Repositories
                 .ToListAsync();
         }
 
+        // ▼ MÉTODO CORRIGIDO ▼
         public async Task<decimal> SomatorioPenalidadesAsync(int idUsuario)
         {
-            return await _ctx.Penalidades
-                .Where(p => p.IdUsuario == idUsuario && p.ValorPenalidade != null)
-                .Select(p => p.ValorPenalidade!.Value)
-                .DefaultIfEmpty(0m)
-                .SumAsync();
+            // O SumAsync em um tipo anulável retorna um decimal? (nulo se não houver registros)
+            var total = await _ctx.Penalidades
+                .Where(p => p.IdUsuario == idUsuario)
+                .SumAsync(p => p.ValorPenalidade);
+
+            // Retorna o valor somado ou 0m caso venha nulo do banco
+            return total ?? 0m;
+        }
+        //
+        public async Task<int> SomatorioDiasBloqueioAsync(int idUsuario)
+        {
+            var totalDias = await _ctx.Penalidades
+                .Where(p => p.IdUsuario == idUsuario)
+                .SumAsync(p => p.DuracaoBloqueioDias); // Usa a propriedade exata do seu Model
+
+            return totalDias ?? 0;
         }
 
         public async Task AtualizarReputacaoAsync(int idUsuario, decimal reputacao)

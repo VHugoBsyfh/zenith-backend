@@ -27,7 +27,7 @@ namespace Backend.Models
         public string TipoUsuario { get; set; } = null!; // Aventureiro/Criador
 
         [Column(TypeName = "decimal(5,2)")]
-        public decimal Reputacao { get; set; } = 0.0M;
+        public decimal Reputacao { get; set; } = 100.00M;
 
         public DateTime DataCadastro { get; set; } = DateTime.Now;
     }
