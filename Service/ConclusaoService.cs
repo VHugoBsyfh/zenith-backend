@@ -43,6 +43,23 @@ namespace Backend.Services
             };
 
             await _repo.RegistrarHistoricoAsync(historico);
+
+            // ▼ NOVA PARTE: GANHO DE REPUTAÇÃO (+10) ▼
+            decimal ganhoReputacao = 10.0m;
+
+            if (missaoAceita.IdUsuario.HasValue)
+            {
+                await _repo.AjustarReputacaoAsync(missaoAceita.IdUsuario.Value, ganhoReputacao);
+            }
+            else if (missaoAceita.IdGrupo.HasValue)
+            {
+                // Se for em grupo, dá +10 para cada membro
+                var membros = await _repo.ListarMembrosDoGrupoAsync(missaoAceita.IdGrupo.Value);
+                foreach (var idMembro in membros)
+                {
+                    await _repo.AjustarReputacaoAsync(idMembro, ganhoReputacao);
+                }
+            }
         }
     }
 }

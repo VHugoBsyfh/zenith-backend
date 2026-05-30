@@ -72,8 +72,18 @@ namespace Backend.Repositories
                 query = query.Where(m => m.IdCriador == idCriador.Value);
 
             // Filtro por aventureiro
+            // Filtro por aventureiro (Ajustado para buscar pelo histórico de aceitação)
             if (idAventureiro.HasValue)
-                query = query.Where(m => m.IdAventureiro == idAventureiro.Value);
+            {
+                // 1. Buscamos todos os IDs de missões que este aventureiro aceitou um dia (ativo, concluído ou cancelado)
+                var idsMissoesDoAventureiro = await _ctx.MissoesAceitas
+                    .Where(ma => ma.IdUsuario == idAventureiro.Value)
+                    .Select(ma => ma.IdMissao)
+                    .ToListAsync();
+
+                // 2. Filtramos a query principal para trazer essas missões
+                query = query.Where(m => idsMissoesDoAventureiro.Contains(m.Id));
+            }
 
             return await query.AsNoTracking().ToListAsync();
         }

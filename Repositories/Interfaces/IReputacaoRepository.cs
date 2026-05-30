@@ -8,5 +8,6 @@ namespace Backend.Repositories.Interfaces
         Task<decimal> SomatorioPenalidadesAsync(int idUsuario);
         Task AtualizarReputacaoAsync(int idUsuario, decimal reputacao);
         Task<int> SomatorioDiasBloqueioAsync(int idUsuario);
+        Task<int> ContarMissoesConcluidasAsync(int idUsuario);
     }
 }

@@ -48,5 +48,10 @@ namespace Backend.Repositories
             u.Reputacao = reputacao;
             await _ctx.SaveChangesAsync();
         }
+        public async Task<int> ContarMissoesConcluidasAsync(int idUsuario)
+        {
+            return await _ctx.HistoricoMissoes
+                .CountAsync(h => h.IdUsuario == idUsuario && h.Resultado == "Concluída");
+        }
     }
 }
