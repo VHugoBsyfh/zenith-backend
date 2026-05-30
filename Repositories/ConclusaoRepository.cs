@@ -10,8 +10,8 @@ namespace Backend.Repositories
         private readonly GuildaDigitalContext _ctx;
         public ConclusaoRepository(GuildaDigitalContext ctx) => _ctx = ctx;
 
-        public async Task<MissaoAceita?> GetAtivaAsync(int idMissaoAceita)
-            => await _ctx.MissoesAceitas.FirstOrDefaultAsync(x => x.Id == idMissaoAceita && x.StatusMissao == "Em andamento");
+        public async Task<MissaoAceita?> GetAtivaAsync(int idMissao)
+            => await _ctx.MissoesAceitas.FirstOrDefaultAsync(x => x.Id == idMissao && x.StatusMissao == "Em andamento");
 
         public async Task AtualizarStatusAsync(MissaoAceita missao, string novoStatus)
         {

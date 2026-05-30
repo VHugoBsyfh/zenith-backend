@@ -16,9 +16,9 @@ namespace Backend.Services
             _grupos = grupos;
         }
 
-        public async Task ConcluirAsync(int idMissaoAceita, int solicitanteId)
+        public async Task ConcluirAsync(int idMissao, int solicitanteId)
         {
-            var missaoAceita = await _repo.GetAtivaAsync(idMissaoAceita)
+            var missaoAceita = await _repo.GetAtivaAsync(idMissao)
                 ?? throw new KeyNotFoundException("Missão não encontrada ou já concluída.");
 
             bool autorizado = false;
@@ -37,7 +37,7 @@ namespace Backend.Services
             var historico = new HistoricoMissao
             {
                 IdUsuario = solicitanteId,
-                IdMissaoAceita = idMissaoAceita,
+                //IdMissaoAceita = idMissaoAceita,
                 Resultado = "Concluída",
                 DataRegistro = DateTime.Now
             };

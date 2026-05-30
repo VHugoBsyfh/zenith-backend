@@ -4,7 +4,7 @@ namespace Backend.Repositories.Interfaces
 {
     public interface IConclusaoRepository
     {
-        Task<MissaoAceita?> GetAtivaAsync(int idMissaoAceita);
+        Task<MissaoAceita?> GetAtivaAsync(int idMissao);
         Task AtualizarStatusAsync(MissaoAceita missao, string novoStatus);
         Task RegistrarHistoricoAsync(HistoricoMissao historico);
         Task AjustarReputacaoAsync(int idUsuario, decimal delta);

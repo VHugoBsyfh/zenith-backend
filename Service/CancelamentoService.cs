@@ -19,9 +19,9 @@ namespace Backend.Services
             _reputacaoService = reputacaoService;
         }
 
-        public async Task CancelarAsync(int idMissaoAceita, int solicitanteId, CancelarMissaoRequest req)
+        public async Task CancelarAsync(int idMissao, int solicitanteId, CancelarMissaoRequest req)
         {
-            var reg = await _repo.GetAtivaAsync(idMissaoAceita)
+            var reg = await _repo.GetAtivaAsync(idMissao)
                       ?? throw new KeyNotFoundException("Missão não encontrada ou não está em andamento.");
 
             // Autorização: quem aceitou pode cancelar
