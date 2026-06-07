@@ -33,7 +33,7 @@ namespace Backend.Services
                 Classe = req.Classe,
                 TipoUsuario = req.TipoUsuario,
                 Nivel = 1,
-                Reputacao = 0.0M,
+                Reputacao = 50.0M,
                 DataCadastro = DateTime.Now
             };
 
@@ -52,6 +52,16 @@ namespace Backend.Services
                 Reputacao = created.Reputacao,
                 DataCadastro = created.DataCadastro
             };
+        }
+        public async Task AtualizarNivelAsync(int idUsuario, int novoNivel)
+        {
+            if (novoNivel < 1)
+                throw new InvalidOperationException("O nível não pode ser menor que 1.");
+
+            var user = await _repo.GetByIdAsync(idUsuario)
+                       ?? throw new KeyNotFoundException("Usuário não encontrado.");
+
+            await _repo.AtualizarNivelAsync(idUsuario, novoNivel);
         }
     }
 }

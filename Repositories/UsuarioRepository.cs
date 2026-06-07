@@ -22,7 +22,16 @@ namespace Backend.Repositories
         }
         public async Task<Usuario?> GetByIdAsync(int id) => await _ctx.Usuarios.FindAsync(id);
 
-         public async Task<Usuario?> GetByEmailAsync(string email)
-            => await _ctx.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
+        public async Task<Usuario?> GetByEmailAsync(string email)
+           => await _ctx.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
+        public async Task AtualizarNivelAsync(int idUsuario, int novoNivel)
+        {
+            var u = await _ctx.Usuarios.FindAsync(idUsuario);
+            if (u != null)
+            {
+                u.Nivel = novoNivel;
+                await _ctx.SaveChangesAsync();
+            }
+        }
     }
 }

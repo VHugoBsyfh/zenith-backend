@@ -8,11 +8,15 @@ namespace Backend.Services
     {
         private readonly IMensagemRepository _msgs;
         private readonly IGrupoRepository _grupos;
+        private readonly IUsuarioRepository _usuarios;
 
-        public ChatService(IMensagemRepository msgs, IGrupoRepository grupos)
+
+
+        public ChatService(IMensagemRepository msgs, IGrupoRepository grupos, IUsuarioRepository usuarios)
         {
             _msgs = msgs;
             _grupos = grupos;
+            _usuarios = usuarios;
         }
 
         public async Task<MessageResponse> EnviarAsync(int idGrupo, int autorId, SendMessageRequest req)
@@ -35,8 +39,8 @@ namespace Backend.Services
             var saved = await _msgs.EnviarAsync(msg);
 
             // para resposta, buscamos o nome via repositório de listagem (ou cache simples)
-            var list = await _msgs.ListarPorGrupoAsync(idGrupo, 0, 1);
-            var autorNome = list.FirstOrDefault().autorNome ?? "Desconhecido";
+            var user = await _usuarios.GetByIdAsync(autorId);
+            var autorNome = user?.Nome ?? "Desconhecido";
 
             return new MessageResponse
             {

@@ -55,6 +55,13 @@ namespace Backend.Services
                 throw new KeyNotFoundException("Você não é membro deste grupo.");
 
             await _grupos.RemoveMembroAsync(idGrupo, userId);
+
+            // NOVA LÓGICA: Se o grupo ficou vazio, apagamos ele do banco
+            var membrosRestantes = await _grupos.CountMembrosAsync(idGrupo);
+            if (membrosRestantes == 0)
+            {
+                await _grupos.DeletarGrupoAsync(idGrupo); // Você precisará criar este método no IGrupoRepository e GrupoRepository
+            }
         }
 
         public async Task<IEnumerable<Usuario>> ListarMembrosAsync(int idGrupo)

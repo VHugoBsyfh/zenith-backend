@@ -89,14 +89,14 @@ namespace Backend.Controllers
 
             return Ok(missoes);
         }
-        [Authorize] // opcionalmente: [Authorize(Roles="Aventureiro")]
-        [HttpGet("recomendadas")]
-        public async Task<IActionResult> Recomendadas([FromQuery] int top = 10)
-        {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var lista = await _service.RecomendadasAsync(userId, top);
-            return Ok(lista);
-        }
+        // [Authorize] // opcionalmente: [Authorize(Roles="Aventureiro")]
+        // [HttpGet("recomendadas")]
+        // public async Task<IActionResult> Recomendadas([FromQuery] int top = 10)
+        // {
+        //     var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        //     var lista = await _service.RecomendadasAsync(userId, top);
+        //     return Ok(lista);
+        // }
         [Authorize(Roles = "Criador")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Atualizar(int id, [FromBody] MissaoUpdateRequest request)

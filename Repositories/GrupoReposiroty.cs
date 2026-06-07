@@ -51,5 +51,29 @@ namespace Backend.Repositories
 
             return await query.AsNoTracking().ToListAsync();
         }
+        //
+        // ▼ NOVA IMPLEMENTAÇÃO ▼
+        public async Task DeletarGrupoAsync(int idGrupo)
+        {
+            // Busca o grupo no banco
+            var grupo = await _ctx.Grupos.FindAsync(idGrupo);
+
+            if (grupo != null)
+            {
+                // Remove e salva
+                _ctx.Grupos.Remove(grupo);
+                await _ctx.SaveChangesAsync();
+            }
+        }
+        //
+        public async Task AtualizarReputacaoAsync(int idGrupo, decimal novaReputacao)
+        {
+            var grupo = await _ctx.Grupos.FirstOrDefaultAsync(g => g.Id == idGrupo);
+            if (grupo != null)
+            {
+                grupo.Reputacao = novaReputacao;
+                await _ctx.SaveChangesAsync();
+            }
+        }
     }
 }

@@ -11,5 +11,7 @@ namespace Backend.Repositories.Interfaces
         Task AddMembroAsync(int idGrupo, int idUsuario);
         Task RemoveMembroAsync(int idGrupo, int idUsuario);
         Task<IEnumerable<Usuario>> ListarMembrosAsync(int idGrupo);
+        Task DeletarGrupoAsync(int idGrupo);
+        Task AtualizarReputacaoAsync(int idGrupo, decimal novaReputacao);
     }
 }

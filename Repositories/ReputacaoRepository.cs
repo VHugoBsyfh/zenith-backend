@@ -53,5 +53,18 @@ namespace Backend.Repositories
             return await _ctx.HistoricoMissoes
                 .CountAsync(h => h.IdUsuario == idUsuario && h.Resultado == "Concluída");
         }
+        //
+        public async Task<List<(Avaliacao avaliacao, int nivelMinimo)>> ListarAvaliacoesComNivelAsync(int idUsuario, int max = 50)
+        {
+            var query = from a in _ctx.Avaliacoes
+                        join ma in _ctx.MissoesAceitas on a.IdMissaoAceita equals ma.Id
+                        join m in _ctx.Missoes on ma.IdMissao equals m.Id
+                        where a.IdAvaliado == idUsuario
+                        orderby a.DataAvaliacao descending
+                        select new { a, m.NivelMinimo };
+
+            var list = await query.Take(max).AsNoTracking().ToListAsync();
+            return list.Select(x => (x.a, x.NivelMinimo)).ToList();
+        }
     }
 }

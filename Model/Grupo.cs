@@ -12,6 +12,9 @@ namespace Backend.Models
         public string NomeGrupo { get; set; } = null!;
 
         public int? IdMissaoVinculada { get; set; }
+
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal Reputacao { get; set; } = 50.00m;
         public DateTime DataCriacao { get; set; } = DateTime.Now;
     }
 }

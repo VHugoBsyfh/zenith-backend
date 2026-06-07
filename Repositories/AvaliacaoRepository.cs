@@ -18,13 +18,22 @@ namespace Backend.Repositories
             var reg = await _ctx.MissoesAceitas.AsNoTracking().FirstOrDefaultAsync(x => x.Id == idMissaoAceita);
             if (reg == null) return (false, false, null, null);
 
-            if (reg.IdUsuario.HasValue) // solo
-                return (reg.IdUsuario.Value == userId, true, reg.IdUsuario.Value, null);
+            // BUSCA A MISSÃO ORIGINAL PARA PEGAR O CRIADOR
+            var missao = await _ctx.Missoes.AsNoTracking().FirstOrDefaultAsync(m => m.Id == reg.IdMissao);
+            bool isCriador = missao != null && missao.IdCriador == userId;
+
+            if (reg.IdUsuario.HasValue) // fluxo solo
+            {
+                // Participa se for o próprio aventureiro OU se for o criador da missão
+                bool participou = (reg.IdUsuario.Value == userId) || isCriador;
+                return (participou, true, reg.IdUsuario.Value, null);
+            }
 
             if (reg.IdGrupo.HasValue)
             {
                 var isMember = await _ctx.GrupoUsuarios.AnyAsync(gu => gu.IdGrupo == reg.IdGrupo && gu.IdUsuario == userId);
-                return (isMember, false, null, reg.IdGrupo);
+                bool participou = isMember || isCriador;
+                return (participou, false, null, reg.IdGrupo);
             }
 
             return (false, false, null, null);
@@ -69,6 +78,13 @@ namespace Backend.Repositories
                 await _ctx.SaveChangesAsync();
             }
             // se não existir histórico, poderíamos criar — mas, via fluxo, ele é criado na conclusão/cancelamento
+        }
+        public async Task<int> ObterNivelMissaoPorAceiteAsync(int idMissaoAceita)
+        {
+            return await (from ma in _ctx.MissoesAceitas
+                          join m in _ctx.Missoes on ma.IdMissao equals m.Id
+                          where ma.Id == idMissaoAceita
+                          select m.NivelMinimo).FirstOrDefaultAsync();
         }
     }
 }

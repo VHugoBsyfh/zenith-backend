@@ -62,12 +62,12 @@ namespace Backend.Services
                 idCriador,
                 idAventureiro);
         }
-        public async Task<IEnumerable<Missao>> RecomendadasAsync(int usuarioId, int top = 10)
-        {
-            var u = await _usuarios.GetByIdAsync(usuarioId)
-                    ?? throw new KeyNotFoundException("Usuário não encontrado.");
-            return await _repo.RecomendadasAsync(u.Classe, u.Nivel, top);
-        }
+        // public async Task<IEnumerable<Missao>> RecomendadasAsync(int usuarioId, int top = 10)
+        // {
+        //     var u = await _usuarios.GetByIdAsync(usuarioId)
+        //             ?? throw new KeyNotFoundException("Usuário não encontrado.");
+        //     return await _repo.RecomendadasAsync(u.Classe, u.Nivel, top);
+        // }
         public async Task<MissaoResponse> AtualizarAsync(int id, MissaoUpdateRequest req, int userId)
         {
             // 1) carregar missão

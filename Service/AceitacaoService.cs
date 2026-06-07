@@ -54,16 +54,22 @@ namespace Backend.Services
         }
 
         // Grupo
+        // Grupo
         public async Task<int> AceitarGrupoAsync(int idMissao, int idGrupo, int solicitanteId, int? idCriadorDaMissao = null)
         {
             var missao = await _missoes.GetByIdForUpdateAsync(idMissao)
                          ?? throw new KeyNotFoundException("Missão não encontrada.");
 
-            if (await _aceites.ExisteEmAndamentoParaAlgumMembroDoGrupoAsync(idGrupo))
-                throw new InvalidOperationException("Algum membro do grupo já possui missão em andamento.");
-
             if (!string.Equals(missao.Status, "Disponível", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Missão não está disponível para aceite.");
+
+            // ▼ NOVA VALIDAÇÃO: Impede que o criador aceite a própria missão através de um grupo
+            var membrosDoGrupo = await _grupos.ListarMembrosAsync(idGrupo);
+            if (membrosDoGrupo.Any(m => m.Id == missao.IdCriador))
+                throw new InvalidOperationException("O criador da missão não pode fazer parte do grupo que a aceita.");
+
+            if (await _aceites.ExisteEmAndamentoParaAlgumMembroDoGrupoAsync(idGrupo))
+                throw new InvalidOperationException("Algum membro do grupo já possui missão em andamento.");
 
             if (!await _grupos.IsMembroAsync(idGrupo, solicitanteId))
                 throw new UnauthorizedAccessException("Apenas membros do grupo podem aceitar missões pelo grupo.");

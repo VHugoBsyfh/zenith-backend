@@ -8,5 +8,6 @@ namespace Backend.Repositories.Interfaces
         Task<Usuario> AddAsync(Usuario usuario);
         Task<Usuario?> GetByEmailAsync(string email);
         Task<Usuario?> GetByIdAsync(int id);
+        Task AtualizarNivelAsync(int idUsuario, int novoNivel);
     }
 }
