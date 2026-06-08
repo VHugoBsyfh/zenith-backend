@@ -46,7 +46,7 @@ namespace Backend.Services
                 IdMissao = idMissao,
                 IdUsuario = idUsuario,
                 IdGrupo = null,
-                StatusMissao = "Em andamento"
+                StatusMissao = status
             });
 
             await _missoes.VincularAventureiroAsync(idMissao, idUsuario, status);

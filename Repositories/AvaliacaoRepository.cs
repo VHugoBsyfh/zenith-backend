@@ -11,7 +11,20 @@ namespace Backend.Repositories
         public AvaliacaoRepository(GuildaDigitalContext ctx) => _ctx = ctx;
 
         public async Task<bool> MissaoEstaConcluidaAsync(int idMissaoAceita)
-            => await _ctx.MissoesAceitas.AnyAsync(m => m.Id == idMissaoAceita && m.StatusMissao == "Concluída");
+        {
+            var missao = await _ctx.MissoesAceitas
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.Id == idMissaoAceita);
+
+            if (missao == null || string.IsNullOrWhiteSpace(missao.StatusMissao))
+                return false;
+
+            // Remove espaços e compara ignorando case e acentos (opcional, mas recomendado)
+            string status = missao.StatusMissao.Trim();
+
+            return status.Equals("Concluida", StringComparison.OrdinalIgnoreCase) ||
+                   status.Equals("Concluída", StringComparison.OrdinalIgnoreCase);
+        }
 
         public async Task<(bool participou, bool isSolo, int? idSolo, int? idGrupo)> VerificarParticipacaoAsync(int idMissaoAceita, int userId)
         {
