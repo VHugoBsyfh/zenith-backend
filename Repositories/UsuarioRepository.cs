@@ -33,5 +33,17 @@ namespace Backend.Repositories
                 await _ctx.SaveChangesAsync();
             }
         }
+        public async Task<List<Usuario>> ListarAsync(string? role)
+        {
+            var query = _ctx.Usuarios.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(role))
+            {
+                // Simples, direto e performático
+                query = query.Where(u => u.TipoUsuario == role);
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }

@@ -99,5 +99,13 @@ namespace Backend.Repositories
                           where ma.Id == idMissaoAceita
                           select m.NivelMinimo).FirstOrDefaultAsync();
         }
+        //
+        public async Task<int?> ObterIdAceiteAsync(int idMissao, int idAvaliado)
+        {
+            var aceite = await _ctx.MissoesAceitas
+                .FirstOrDefaultAsync(m => m.IdMissao == idMissao && m.IdUsuario == idAvaliado);
+
+            return aceite?.Id;
+        }
     }
 }

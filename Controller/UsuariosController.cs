@@ -50,6 +50,20 @@ namespace Backend.Controllers
             catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         }
-
+        //
+        [HttpGet]
+        public async Task<IActionResult> Listar([FromQuery] string? role)
+        {
+            try
+            {
+                var usuarios = await _service.ListarUsuariosAsync(role);
+                return Ok(usuarios);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Erro ao buscar usuários.", error = ex.Message });
+            }
+        }
     }
+
 }

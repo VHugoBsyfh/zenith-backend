@@ -12,5 +12,7 @@ namespace Backend.Repositories.Interfaces
         Task<List<Avaliacao>> ListarRecebidasDoUsuarioAsync(int idUsuario);
         Task AtualizarHistoricoAvaliacaoAsync(int idUsuario, int idMissaoAceita, decimal nota, string? justificativa);
         Task<int> ObterNivelMissaoPorAceiteAsync(int idMissaoAceita);
+        // No IAvaliacaoRepository ou IMissaoRepository
+        Task<int?> ObterIdAceiteAsync(int idMissao, int idAvaliado);
     }
 }

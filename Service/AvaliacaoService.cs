@@ -18,49 +18,54 @@ namespace Backend.Services
 
         public async Task<AvaliacaoResponse> CriarAsync(int avaliadorId, AvaliacaoCreateRequest req)
         {
-            // Validação do range de estrelas (1 a 5)
+            // 1. Traduzir IdMissao + IdAvaliado para IdMissaoAceita
+            // Isso abstrai a complexidade do banco para o Front-end
+            var idMissaoAceita = await _repo.ObterIdAceiteAsync(req.IdMissao, req.IdAvaliado)
+                ?? throw new KeyNotFoundException("Não encontramos um aceite válido para esta missão e este usuário.");
+
+            // 2. Validação do range de estrelas (1 a 5)
             if (req.Nota < 1 || req.Nota > 5)
                 throw new InvalidOperationException("A nota de avaliação deve ser entre 1 e 5 estrelas.");
 
-            // Missão concluída?
-            if (!await _repo.MissaoEstaConcluidaAsync(req.IdMissaoAceita))
+            // 3. Missão concluída? (Usando o ID traduzido)
+            if (!await _repo.MissaoEstaConcluidaAsync(idMissaoAceita))
                 throw new InvalidOperationException("A avaliação só é permitida após a missão ser concluída.");
 
-            // Participação do avaliador
-            var (participou, isSolo, idSolo, idGrupo) = await _repo.VerificarParticipacaoAsync(req.IdMissaoAceita, avaliadorId);
+            // 4. Participação do avaliador
+            var (participou, isSolo, idSolo, idGrupo) = await _repo.VerificarParticipacaoAsync(idMissaoAceita, avaliadorId);
             if (!participou)
                 throw new UnauthorizedAccessException("Você não participou desta missão.");
 
             if (avaliadorId == req.IdAvaliado)
                 throw new InvalidOperationException("Não é permitido se autoavaliar.");
 
-            // Participação do avaliado
-            var (participouAvaliado, _, idSoloAvaliado, idGrupoAvaliado) = await _repo.VerificarParticipacaoAsync(req.IdMissaoAceita, req.IdAvaliado);
+            // 5. Participação do avaliado
+            var (participouAvaliado, _, idSoloAvaliado, idGrupoAvaliado) = await _repo.VerificarParticipacaoAsync(idMissaoAceita, req.IdAvaliado);
             if (!participouAvaliado)
                 throw new InvalidOperationException("O usuário avaliado não participou desta missão.");
 
-            // Não pode avaliar alguém fora do mesmo contexto da aceitação (solo/grupo)
+            // 6. Não pode avaliar alguém fora do mesmo contexto da aceitação (solo/grupo)
             if (isSolo != (idSoloAvaliado.HasValue))
                 throw new InvalidOperationException("Avaliação inválida entre participantes de contextos diferentes.");
 
-            // Já avaliou esse alvo?
-            if (await _repo.JaAvaliouAsync(req.IdMissaoAceita, avaliadorId, req.IdAvaliado))
+            // 7. Já avaliou esse alvo?
+            if (await _repo.JaAvaliouAsync(idMissaoAceita, avaliadorId, req.IdAvaliado))
                 throw new InvalidOperationException("Você já avaliou este participante nesta missão.");
 
+            // 8. Criação da avaliação
             var ent = new Avaliacao
             {
                 IdAvaliador = avaliadorId,
                 IdAvaliado = req.IdAvaliado,
-                IdMissaoAceita = req.IdMissaoAceita,
+                IdMissaoAceita = idMissaoAceita, // Agora usando o ID correto traduzido
                 Nota = req.Nota,
                 Justificativa = string.IsNullOrWhiteSpace(req.Justificativa) ? null : req.Justificativa.Trim()
             };
 
             var saved = await _repo.CriarAsync(ent);
 
-            // Atualiza o histórico do avaliado (campo AvaliacaoRecebida)
-            await _repo.AtualizarHistoricoAvaliacaoAsync(req.IdAvaliado, req.IdMissaoAceita, req.Nota, req.Justificativa);
-            //await _reputacaoService.RecalcularAsync(req.IdAvaliado);
+            // 9. Atualiza o histórico do avaliado
+            await _repo.AtualizarHistoricoAvaliacaoAsync(req.IdAvaliado, idMissaoAceita, req.Nota, req.Justificativa);
 
             return new AvaliacaoResponse
             {
