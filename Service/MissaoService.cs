@@ -51,7 +51,8 @@ namespace Backend.Services
     int? nivelMaximo,
     decimal? recompensaMinima,
     int? idCriador,
-    int? idAventureiro)
+    int? idAventureiro,
+    int? idGrupo)
         {
             return await _repo.FiltrarAsync(
                 tipo,
@@ -60,7 +61,8 @@ namespace Backend.Services
                 nivelMaximo,
                 recompensaMinima,
                 idCriador,
-                idAventureiro);
+                idAventureiro,
+                idGrupo);
         }
         // public async Task<IEnumerable<Missao>> RecomendadasAsync(int usuarioId, int top = 10)
         // {

@@ -54,5 +54,30 @@ namespace Backend.Repositories
 
             return (total, items);
         }
+        //
+        public async Task<DateTime?> ObterDataFimBloqueioAtivoAsync(int idUsuario)
+        {
+            // 1. Busca a última penalidade que tem dias de bloqueio
+            var ultimoBloqueio = await _ctx.Penalidades
+                .Where(p => p.IdUsuario == idUsuario && p.DuracaoBloqueioDias != null)
+                .OrderByDescending(p => p.DataAplicacao)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (ultimoBloqueio == null)
+                return null; // Nunca foi bloqueado
+
+            // 2. A Matemática: Data que tomou o ban + Quantidade de dias
+            var dataFimBloqueio = ultimoBloqueio.DataAplicacao.AddDays(ultimoBloqueio.DuracaoBloqueioDias.Value);
+
+            // 3. Se a data do fim do bloqueio for MAIOR que o momento atual, ele ainda está bloqueado
+            if (dataFimBloqueio > DateTime.Now)
+            {
+                return dataFimBloqueio; // Retorna até quando ele está bloqueado
+            }
+
+            // Se já passou do tempo, retorna null (está livre!)
+            return null;
+        }
     }
 }

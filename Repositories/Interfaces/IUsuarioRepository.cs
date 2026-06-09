@@ -9,6 +9,6 @@ namespace Backend.Repositories.Interfaces
         Task<Usuario?> GetByEmailAsync(string email);
         Task<Usuario?> GetByIdAsync(int id);
         Task AtualizarNivelAsync(int idUsuario, int novoNivel);
-        Task<List<Usuario>> ListarAsync(string? role);
+        Task<List<Usuario>> ListarAsync(string? role, int? id);
     }
 }

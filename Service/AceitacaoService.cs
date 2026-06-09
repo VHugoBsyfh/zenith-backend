@@ -8,12 +8,15 @@ namespace Backend.Services
         private readonly IMissaoRepository _missoes;
         private readonly IMissaoAceitaRepository _aceites;
         private readonly IGrupoRepository _grupos;
+        private readonly ReputacaoService _reputacao;
 
-        public AceitacaoService(IMissaoRepository missoes, IMissaoAceitaRepository aceites, IGrupoRepository grupos)
+        public AceitacaoService(IMissaoRepository missoes, IMissaoAceitaRepository aceites, IGrupoRepository grupos,
+        ReputacaoService reputacao)
         {
             _missoes = missoes;
             _aceites = aceites;
             _grupos = grupos;
+            _reputacao = reputacao;
         }
 
         // Solo
@@ -50,6 +53,7 @@ namespace Backend.Services
             });
 
             await _missoes.VincularAventureiroAsync(idMissao, idUsuario, status);
+            await _reputacao.RecalcularAsync(idUsuario);
             return registro.Id;
         }
 
@@ -94,6 +98,10 @@ namespace Backend.Services
             });
 
             await _missoes.SetStatusAsync(idMissao, "Aceita");
+            foreach (var membro in membrosDoGrupo)
+            {
+                await _reputacao.RecalcularAsync(membro.Id);
+            }
             return registro.Id;
         }
     }

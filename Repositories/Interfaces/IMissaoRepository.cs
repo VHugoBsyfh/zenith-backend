@@ -16,7 +16,8 @@ namespace Backend.Repositories.Interfaces
     int? nivelMaximo,
     decimal? recompensaMinima,
     int? idCriador,
-    int? idAventureiro);
+    int? idAventureiro,
+    int? idGrupo);
         Task<IEnumerable<Missao>> RecomendadasAsync(string classe, int nivel, int top);
         Task<Missao?> GetByIdForUpdateAsync(int id);
         Task<bool> HasVinculosAsync(int missaoId);

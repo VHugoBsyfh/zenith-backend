@@ -72,5 +72,17 @@ namespace Backend.Controllers
             catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
             catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
         }
+        //
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> ListarGrupos([FromQuery] int? id)
+        {
+            var grupos = await _service.ListarGruposAsync(id);
+
+            if (id.HasValue && !grupos.Any())
+                return NotFound(new { message = "Grupo não encontrado." });
+
+            return Ok(grupos);
+        }
     }
 }

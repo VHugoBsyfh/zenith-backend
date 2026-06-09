@@ -10,5 +10,6 @@ namespace Backend.DTOs
         public string TipoUsuario { get; set; } = null!;
         public decimal Reputacao { get; set; }
         public string Role { get; set; }
+        public int? IdGrupo { get; set; }
     }
 }

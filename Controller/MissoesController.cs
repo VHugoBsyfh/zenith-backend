@@ -76,7 +76,8 @@ namespace Backend.Controllers
     [FromQuery] int? nivelMaximo,
     [FromQuery] decimal? recompensaMinima,
     [FromQuery] int? idCriador,
-    [FromQuery] int? idAventureiro)
+    [FromQuery] int? idAventureiro,
+    [FromQuery] int? idGrupo)
         {
             var missoes = await _service.FiltrarAsync(
                 tipo,
@@ -85,7 +86,8 @@ namespace Backend.Controllers
                 nivelMaximo,
                 recompensaMinima,
                 idCriador,
-                idAventureiro);
+                idAventureiro,
+                idGrupo);
 
             return Ok(missoes);
         }

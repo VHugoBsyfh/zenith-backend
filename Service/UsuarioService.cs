@@ -63,20 +63,21 @@ namespace Backend.Services
 
             await _repo.AtualizarNivelAsync(idUsuario, novoNivel);
         }
-        public async Task<List<UsuarioResponse>> ListarUsuariosAsync(string? role)
+        public async Task<List<UsuarioResponse>> ListarUsuariosAsync(string? role, int? id)
         {
-            var usuarios = await _repo.ListarAsync(role);
+            var usuarios = await _repo.ListarAsync(role, id);
 
             return usuarios.Select(u => new UsuarioResponse
             {
                 Id = u.Id,
                 Nome = u.Nome,
                 Email = u.Email,
-                Classe = u.Classe,       // Certifique-se que existe u.Classe no seu Model
-                Nivel = u.Nivel,         // Certifique-se que existe u.Nivel no seu Model
+                Classe = u.Classe,
+                Nivel = u.Nivel,
                 TipoUsuario = u.TipoUsuario,
-                Reputacao = u.Reputacao, // Certifique-se que existe u.Reputacao no seu Model
-                Role = u.TipoUsuario     // Mapeando a propriedade do banco para o campo Role do DTO
+                Reputacao = u.Reputacao,
+                Role = u.TipoUsuario,
+                IdGrupo = u.IdGrupo // <--- Mapeando o novo campo
             }).ToList();
         }
     }

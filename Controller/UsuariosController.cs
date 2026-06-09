@@ -52,11 +52,18 @@ namespace Backend.Controllers
         }
         //
         [HttpGet]
-        public async Task<IActionResult> Listar([FromQuery] string? role)
+        public async Task<IActionResult> Listar([FromQuery] string? role, [FromQuery] int? id)
         {
             try
             {
-                var usuarios = await _service.ListarUsuariosAsync(role);
+                var usuarios = await _service.ListarUsuariosAsync(role, id);
+
+                // Se buscou por ID específico e não achou ninguém, retorna 404 bacana
+                if (id.HasValue && !usuarios.Any())
+                {
+                    return NotFound(new { message = "Usuário não encontrado." });
+                }
+
                 return Ok(usuarios);
             }
             catch (Exception ex)

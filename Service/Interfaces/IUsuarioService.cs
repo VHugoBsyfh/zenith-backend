@@ -6,6 +6,6 @@ namespace Backend.Services.Interfaces
     {
         Task<UserResponse> RegistrarAsync(RegisterUserRequest request);
         Task AtualizarNivelAsync(int idUsuario, int novoNivel);
-        Task<List<UsuarioResponse>> ListarUsuariosAsync(string? role);
+        Task<List<UsuarioResponse>> ListarUsuariosAsync(string? role, int? id);
     }
 }

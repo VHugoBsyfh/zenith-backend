@@ -21,35 +21,38 @@ namespace Backend.Repositories
             => await _ctx.Grupos.AsNoTracking().FirstOrDefaultAsync(g => g.Id == id);
 
         public async Task<int> CountMembrosAsync(int idGrupo)
-            => await _ctx.GrupoUsuarios.CountAsync(gu => gu.IdGrupo == idGrupo);
+    => await _ctx.Usuarios.CountAsync(u => u.IdGrupo == idGrupo);
 
         public async Task<bool> IsMembroAsync(int idGrupo, int idUsuario)
-            => await _ctx.GrupoUsuarios.AnyAsync(gu => gu.IdGrupo == idGrupo && gu.IdUsuario == idUsuario);
+    => await _ctx.Usuarios.AnyAsync(u => u.IdGrupo == idGrupo && u.Id == idUsuario);
 
         public async Task AddMembroAsync(int idGrupo, int idUsuario)
         {
-            _ctx.GrupoUsuarios.Add(new GrupoUsuario { IdGrupo = idGrupo, IdUsuario = idUsuario });
-            await _ctx.SaveChangesAsync();
+            var usuario = await _ctx.Usuarios.FindAsync(idUsuario);
+            if (usuario != null)
+            {
+                usuario.IdGrupo = idGrupo; // Atualiza a coluna direto no usuário
+                await _ctx.SaveChangesAsync();
+            }
         }
 
         public async Task RemoveMembroAsync(int idGrupo, int idUsuario)
         {
-            var ent = await _ctx.GrupoUsuarios.FirstOrDefaultAsync(gu => gu.IdGrupo == idGrupo && gu.IdUsuario == idUsuario);
-            if (ent != null)
+            var usuario = await _ctx.Usuarios.FindAsync(idUsuario);
+            if (usuario != null)
             {
-                _ctx.GrupoUsuarios.Remove(ent);
+                usuario.IdGrupo = null; // Tira ele do grupo
                 await _ctx.SaveChangesAsync();
             }
         }
 
         public async Task<IEnumerable<Usuario>> ListarMembrosAsync(int idGrupo)
         {
-            var query = from gu in _ctx.GrupoUsuarios
-                        join u in _ctx.Usuarios on gu.IdUsuario equals u.Id
-                        where gu.IdGrupo == idGrupo
-                        select u;
-
-            return await query.AsNoTracking().ToListAsync();
+            // Olha como a consulta ficou infinitamente mais simples sem o JOIN!
+            return await _ctx.Usuarios
+                .Where(u => u.IdGrupo == idGrupo)
+                .AsNoTracking()
+                .ToListAsync();
         }
         //
         // ▼ NOVA IMPLEMENTAÇÃO ▼
@@ -74,6 +77,18 @@ namespace Backend.Repositories
                 grupo.Reputacao = novaReputacao;
                 await _ctx.SaveChangesAsync();
             }
+        }
+        //
+        public async Task<List<Grupo>> ListarAsync(int? id)
+        {
+            var query = _ctx.Grupos.AsQueryable();
+
+            if (id.HasValue && id.Value > 0)
+            {
+                query = query.Where(g => g.Id == id.Value);
+            }
+
+            return await query.AsNoTracking().ToListAsync();
         }
     }
 }

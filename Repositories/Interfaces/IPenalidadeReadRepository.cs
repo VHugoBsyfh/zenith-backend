@@ -10,5 +10,6 @@ namespace Backend.Repositories.Interfaces
             int? idMissaoAceita,
             DateTime? de, DateTime? ate,
             int skip, int take);
+        Task<DateTime?> ObterDataFimBloqueioAtivoAsync(int idUsuario);
     }
 }

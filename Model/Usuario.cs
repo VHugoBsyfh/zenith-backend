@@ -30,5 +30,6 @@ namespace Backend.Models
         public decimal Reputacao { get; set; } = 100.00M;
 
         public DateTime DataCadastro { get; set; } = DateTime.Now;
+        public int? IdGrupo { get; set; }
     }
 }

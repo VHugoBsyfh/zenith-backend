@@ -34,6 +34,7 @@ namespace Backend.Models
         public int IdCriador { get; set; }
         //[Required]
         public int? IdAventureiro { get; set; }
+        public int? IdGrupo { get; set; }
 
         [MaxLength(20)]
         public string? Status { get; set; } = "Disponível";

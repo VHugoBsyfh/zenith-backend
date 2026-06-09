@@ -66,5 +66,25 @@ namespace Backend.Services
 
         public async Task<IEnumerable<Usuario>> ListarMembrosAsync(int idGrupo)
             => await _grupos.ListarMembrosAsync(idGrupo);
+        //
+        public async Task<List<GrupoResponse>> ListarGruposAsync(int? id)
+        {
+            var grupos = await _grupos.ListarAsync(id);
+            var resultado = new List<GrupoResponse>();
+
+            foreach (var g in grupos)
+            {
+                resultado.Add(new GrupoResponse
+                {
+                    Id = g.Id,
+                    NomeGrupo = g.NomeGrupo,
+                    QuantidadeMembros = await _grupos.CountMembrosAsync(g.Id),
+                    IdMissaoVinculada = g.IdMissaoVinculada,
+                    DataCriacao = g.DataCriacao
+                });
+            }
+
+            return resultado;
+        }
     }
 }

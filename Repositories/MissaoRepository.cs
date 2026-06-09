@@ -46,7 +46,8 @@ namespace Backend.Repositories
     int? nivelMaximo,
     decimal? recompensaMinima,
     int? idCriador,
-    int? idAventureiro)
+    int? idAventureiro,
+    int? idGrupo)
         {
             var query = _ctx.Missoes.AsQueryable();
 
@@ -83,6 +84,17 @@ namespace Backend.Repositories
 
                 // 2. Filtramos a query principal para trazer essas missões
                 query = query.Where(m => idsMissoesDoAventureiro.Contains(m.Id));
+            }
+            if (idGrupo.HasValue)
+            {
+                // 1. Buscamos todos os IDs de missões que este grupo aceitou na história
+                var idsMissoesDoGrupo = await _ctx.MissoesAceitas
+                    .Where(ma => ma.IdGrupo == idGrupo.Value)
+                    .Select(ma => ma.IdMissao)
+                    .ToListAsync();
+
+                // 2. Filtramos a query principal para trazer apenas essas missões
+                query = query.Where(m => idsMissoesDoGrupo.Contains(m.Id));
             }
 
             return await query.AsNoTracking().ToListAsync();

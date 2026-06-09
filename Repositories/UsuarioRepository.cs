@@ -33,13 +33,19 @@ namespace Backend.Repositories
                 await _ctx.SaveChangesAsync();
             }
         }
-        public async Task<List<Usuario>> ListarAsync(string? role)
+        public async Task<List<Usuario>> ListarAsync(string? role, int? id)
         {
             var query = _ctx.Usuarios.AsQueryable();
 
+            // 1. Filtro por ID (se foi passado, só vai trazer ele)
+            if (id.HasValue && id.Value > 0)
+            {
+                query = query.Where(u => u.Id == id.Value);
+            }
+
+            // 2. Filtro por Role (mantemos a que funcionou pra você)
             if (!string.IsNullOrWhiteSpace(role))
             {
-                // Simples, direto e performático
                 query = query.Where(u => u.TipoUsuario == role);
             }
 
