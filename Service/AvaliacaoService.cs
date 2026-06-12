@@ -111,24 +111,22 @@ namespace Backend.Services
             if (req.Nota < 1 || req.Nota > 5)
                 throw new InvalidOperationException("A nota de avaliação deve ser entre 1 e 5 estrelas.");
 
-            // 2. Validação de Status
-            if (!await _repo.MissaoEstaConcluidaAsync(req.IdMissaoAceita))
+            // 2. Validação de Status (AGORA USA req.IdMissao)
+            if (!await _repo.MissaoEstaConcluidaAsync(req.IdMissao))
                 throw new InvalidOperationException("A avaliação só é permitida após a missão ser concluída.");
 
-            // 3. Verifica se quem está avaliando é realmente o criador (dono) da missão
-            var (_, _, _, idGrupoParticipante) = await _repo.VerificarParticipacaoAsync(req.IdMissaoAceita, avaliadorId);
+            // 3. Verifica participação (AGORA USA req.IdMissao)
+            var (_, _, _, idGrupoParticipante) = await _repo.VerificarParticipacaoAsync(req.IdMissao, avaliadorId);
             if (idGrupoParticipante != req.IdGrupo)
             {
-                // Se o idGrupo não bater, significa que o avaliador não está na missão correta,
-                // ou não é o criador autorizado a avaliar este grupo.
                 throw new UnauthorizedAccessException("Você não tem permissão para avaliar o grupo desta missão.");
             }
 
             var grupo = await gruposRepo.GetByIdAsync(req.IdGrupo)
-            ?? throw new KeyNotFoundException("Grupo não encontrado.");
+                ?? throw new KeyNotFoundException("Grupo não encontrado.");
 
-            // Busca o nível da missão para calcular a glória do grupo
-            int nivelMissao = await _repo.ObterNivelMissaoPorAceiteAsync(req.IdMissaoAceita);
+            // 4. Busca o nível (AGORA USA O MÉTODO DIRETO)
+            int nivelMissao = await _repo.ObterNivelMissaoAsync(req.IdMissao);
 
             decimal variacaoReputacao = req.Nota switch
             {
@@ -147,7 +145,7 @@ namespace Backend.Services
             }
             else if (req.Nota < 3)
             {
-                // Punição por falhar em missão de alto nível (Penalidade extra)
+                // Punição por falhar em missão de alto nível
                 variacaoReputacao -= (nivelMissao * 0.2m);
             }
 

@@ -10,43 +10,46 @@ namespace Backend.Repositories
         private readonly GuildaDigitalContext _ctx;
         public AvaliacaoRepository(GuildaDigitalContext ctx) => _ctx = ctx;
 
-        public async Task<bool> MissaoEstaConcluidaAsync(int idMissaoAceita)
+        public async Task<int> ObterNivelMissaoAsync(int idMissao)
         {
-            var missao = await _ctx.MissoesAceitas
+            var missao = await _ctx.Missoes.AsNoTracking().FirstOrDefaultAsync(m => m.Id == idMissao);
+            return missao?.NivelMinimo ?? 1;
+        }
+        public async Task<bool> MissaoEstaConcluidaAsync(int idMissao)
+        {
+            // Agora olhamos direto na tabela principal de Missoes
+            var missao = await _ctx.Missoes
                 .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.Id == idMissaoAceita);
+                .FirstOrDefaultAsync(m => m.Id == idMissao);
 
-            if (missao == null || string.IsNullOrWhiteSpace(missao.StatusMissao))
+            if (missao == null || string.IsNullOrWhiteSpace(missao.Status))
                 return false;
 
-            // Remove espaços e compara ignorando case e acentos (opcional, mas recomendado)
-            string status = missao.StatusMissao.Trim();
+            string status = missao.Status.Trim();
 
             return status.Equals("Concluida", StringComparison.OrdinalIgnoreCase) ||
                    status.Equals("Concluída", StringComparison.OrdinalIgnoreCase);
         }
 
-        public async Task<(bool participou, bool isSolo, int? idSolo, int? idGrupo)> VerificarParticipacaoAsync(int idMissaoAceita, int userId)
+        public async Task<(bool participou, bool isSolo, int? idSolo, int? idGrupo)> VerificarParticipacaoAsync(int idMissao, int userId)
         {
-            var reg = await _ctx.MissoesAceitas.AsNoTracking().FirstOrDefaultAsync(x => x.Id == idMissaoAceita);
-            if (reg == null) return (false, false, null, null);
+            // Busca direto a missão principal
+            var missao = await _ctx.Missoes.AsNoTracking().FirstOrDefaultAsync(m => m.Id == idMissao);
+            if (missao == null) return (false, false, null, null);
 
-            // BUSCA A MISSÃO ORIGINAL PARA PEGAR O CRIADOR
-            var missao = await _ctx.Missoes.AsNoTracking().FirstOrDefaultAsync(m => m.Id == reg.IdMissao);
-            bool isCriador = missao != null && missao.IdCriador == userId;
+            bool isCriador = missao.IdCriador == userId;
 
-            if (reg.IdUsuario.HasValue) // fluxo solo
+            if (missao.IdAventureiro.HasValue) // Fluxo Solo
             {
-                // Participa se for o próprio aventureiro OU se for o criador da missão
-                bool participou = (reg.IdUsuario.Value == userId) || isCriador;
-                return (participou, true, reg.IdUsuario.Value, null);
+                bool participou = (missao.IdAventureiro.Value == userId) || isCriador;
+                return (participou, true, missao.IdAventureiro.Value, null);
             }
 
-            if (reg.IdGrupo.HasValue)
+            if (missao.IdGrupo.HasValue) // Fluxo Grupo
             {
-                var isMember = await _ctx.GrupoUsuarios.AnyAsync(gu => gu.IdGrupo == reg.IdGrupo && gu.IdUsuario == userId);
+                var isMember = await _ctx.GrupoUsuarios.AnyAsync(gu => gu.IdGrupo == missao.IdGrupo.Value && gu.IdUsuario == userId);
                 bool participou = isMember || isCriador;
-                return (participou, false, null, reg.IdGrupo);
+                return (participou, false, null, missao.IdGrupo.Value);
             }
 
             return (false, false, null, null);
