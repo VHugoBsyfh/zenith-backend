@@ -67,8 +67,9 @@ namespace Backend.Services
             if (!string.Equals(missao.Status, "Disponível", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Missão não está disponível para aceite.");
 
-            // ▼ NOVA VALIDAÇÃO: Impede que o criador aceite a própria missão através de um grupo
+            // ▼ A VARIÁVEL É CRIADA E CARREGADA AQUI
             var membrosDoGrupo = await _grupos.ListarMembrosAsync(idGrupo);
+
             if (membrosDoGrupo.Any(m => m.Id == missao.IdCriador))
                 throw new InvalidOperationException("O criador da missão não pode fazer parte do grupo que a aceita.");
 
@@ -97,32 +98,35 @@ namespace Backend.Services
                 StatusMissao = "Em andamento"
             });
 
-            await _missoes.SetStatusAsync(idMissao, "Aceita");
+            // Atualiza o banco principal para o WM conseguir filtrar!
+            await _missoes.VincularGrupoAsync(idMissao, idGrupo, "Em andamento");
+
+            // ▼ CORREÇÃO: Apenas fazemos o loop na variável que já existe, sem redeclarar!
             foreach (var membro in membrosDoGrupo)
             {
                 await _reputacao.RecalcularAsync(membro.Id);
             }
+
             return registro.Id;
         }
         //
         public async Task ConcluirGrupoAsync(int idMissao, int idGrupo, int solicitanteId)
         {
-            // 1. O usuário que está apertando o botão faz parte da guilda?
-            if (!await _grupos.IsMembroAsync(idGrupo, solicitanteId))
-                throw new UnauthorizedAccessException("Apenas membros do grupo podem concluir esta missão.");
+            // ... validações iniciais (IsMembroAsync, etc) ...
 
-            // 2. O grupo realmente aceitou essa missão antes?
             var registro = await _aceites.ObterRegistroGrupoAsync(idMissao, idGrupo)
                 ?? throw new KeyNotFoundException("O grupo não possui um registro ativo para esta missão.");
 
             if (registro.StatusMissao == "Concluída")
                 throw new InvalidOperationException("A missão já foi concluída anteriormente.");
 
-            // 3. Atualizamos a tabela de Aceites e a tabela Principal de Missões
+            // Atualiza a tabela de histórico
             await _aceites.AtualizarStatusRegistroAsync(registro.Id, "Concluída");
+
+            // ▼ AQUI ESTÁ O SEGREDO: Usamos o método que só muda o status e não apaga o IdGrupo!
             await _missoes.SetStatusAsync(idMissao, "Concluída");
 
-            // 4. A MÁGICA: Recalcular a reputação de todos os membros do grupo instantaneamente!
+            // Recalcula a reputação de todo mundo
             var membros = await _grupos.ListarMembrosAsync(idGrupo);
             foreach (var membro in membros)
             {

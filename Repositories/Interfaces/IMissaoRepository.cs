@@ -24,5 +24,6 @@ namespace Backend.Repositories.Interfaces
         Task SetStatusAsync(int idMissao, string novoStatus);
         Task DesvincularAventureiroAsync(int idMissao, string novoStatus);
         Task VincularAventureiroAsync(int idMissao, int idAventureiro, string novoStatus);
+        Task VincularGrupoAsync(int idMissao, int idGrupo, string status);
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Swagger
@@ -128,6 +129,7 @@ builder.Services.AddScoped<GrupoService>();
 builder.Services.AddScoped<MissaoService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddHttpClient<Backend.Services.PagamentoService>();
 
 var app = builder.Build();
 

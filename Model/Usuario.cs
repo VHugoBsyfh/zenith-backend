@@ -31,5 +31,8 @@ namespace Backend.Models
 
         public DateTime DataCadastro { get; set; } = DateTime.Now;
         public int? IdGrupo { get; set; }
+
+        [MaxLength(100)]
+        public string? ChavePix { get; set; } 
     }
 }

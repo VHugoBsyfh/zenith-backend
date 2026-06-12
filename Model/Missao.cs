@@ -40,5 +40,7 @@ namespace Backend.Models
         public string? Status { get; set; } = "Disponível";
 
         public DateTime DataCriacao { get; set; } = DateTime.Now;
+
+        public bool PagamentoRealizado { get; set; } = false; 
     }
 }

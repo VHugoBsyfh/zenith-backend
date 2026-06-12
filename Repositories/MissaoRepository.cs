@@ -126,30 +126,50 @@ namespace Backend.Repositories
 
         public async Task SetStatusAsync(int idMissao, string novoStatus)
         {
-            var m = await _ctx.Missoes.FirstOrDefaultAsync(x => x.Id == idMissao);
+            // Usamos FindAsync para buscar a entidade original com todos os seus dados atuais
+            var m = await _ctx.Missoes.FindAsync(idMissao);
             if (m != null)
             {
                 m.Status = novoStatus;
-                await _ctx.SaveChangesAsync();
-            }
-        }
-        public async Task DesvincularAventureiroAsync(int idMissao, string novoStatus)
-        {
-            var m = await _ctx.Missoes.FirstOrDefaultAsync(x => x.Id == idMissao);
-            if (m != null)
-            {
-                m.IdAventureiro = null; // A mágica reversa acontece aqui!
-                m.Status = novoStatus;
+                // Não tocamos no m.IdAventureiro nem no m.IdGrupo! 
+                // Eles continuam com o valor que já tinham.
                 await _ctx.SaveChangesAsync();
             }
         }
         public async Task VincularAventureiroAsync(int idMissao, int idAventureiro, string novoStatus)
         {
-            var m = await _ctx.Missoes.FirstOrDefaultAsync(x => x.Id == idMissao);
+            var m = await _ctx.Missoes.FindAsync(idMissao);
             if (m != null)
             {
                 m.IdAventureiro = idAventureiro;
+                m.IdGrupo = null; // Garante limpeza
                 m.Status = novoStatus;
+                await _ctx.SaveChangesAsync();
+            }
+        }
+
+        // NOVO: Atualiza o vínculo de grupo
+        public async Task VincularGrupoAsync(int idMissao, int idGrupo, string novoStatus)
+        {
+            var m = await _ctx.Missoes.FindAsync(idMissao);
+            if (m != null)
+            {
+                m.IdGrupo = idGrupo;
+                m.IdAventureiro = null; // Garante limpeza
+                m.Status = novoStatus;
+                await _ctx.SaveChangesAsync();
+            }
+        }
+
+        // CORREÇÃO: Garante que ambos sejam limpos no cancelamento
+        public async Task DesvincularAventureiroAsync(int idMissao, string status)
+        {
+            var m = await _ctx.Missoes.FindAsync(idMissao);
+            if (m != null)
+            {
+                m.IdAventureiro = null;
+                m.IdGrupo = null;
+                m.Status = status;
                 await _ctx.SaveChangesAsync();
             }
         }
