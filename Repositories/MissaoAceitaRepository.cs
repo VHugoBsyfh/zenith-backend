@@ -55,5 +55,20 @@ namespace Backend.Repositories
                 )
             );
         }
+        public async Task<MissaoAceita?> ObterRegistroGrupoAsync(int idMissao, int idGrupo)
+        {
+            return await _ctx.MissoesAceitas
+                .FirstOrDefaultAsync(ma => ma.IdMissao == idMissao && ma.IdGrupo == idGrupo);
+        }
+
+        public async Task AtualizarStatusRegistroAsync(int idRegistro, string novoStatus)
+        {
+            var registro = await _ctx.MissoesAceitas.FindAsync(idRegistro);
+            if (registro != null)
+            {
+                registro.StatusMissao = novoStatus;
+                await _ctx.SaveChangesAsync();
+            }
+        }
     }
 }

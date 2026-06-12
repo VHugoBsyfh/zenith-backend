@@ -10,39 +10,47 @@ namespace Backend.Repositories
         private readonly GuildaDigitalContext _ctx;
         public RankingRepository(GuildaDigitalContext ctx) => _ctx = ctx;
 
-        public async Task<List<RankingUsuarioItem>> GetTopAventureirosAsync(int take, int minMissoes)
+        public async Task<List<RankingUsuarioItem>> GetTopAventureirosAsync(int take, int minMissoes, string? orderBy)
         {
-            // Base em HistoricoMissoes (por usuário)
-            var query =
-                from u in _ctx.Usuarios
-                where u.TipoUsuario == "Aventureiro"
-                join h in _ctx.HistoricoMissoes on u.Id equals h.IdUsuario
-                group h by new { u.Id, u.Nome, u.Classe, u.Nivel, u.Reputacao } into g
-                let concluidas = g.Count(x => x.Resultado == "Concluída")
-                let totais = g.Count()
-                let taxa = (decimal)concluidas / (totais == 0 ? 1 : totais) // ou filtre depois
-                let ultima = g.Max(x => x.DataRegistro)
-                where totais >= minMissoes
-                select new RankingUsuarioItem
+            // Abordagem com Subconsultas (À prova de falhas no EF Core)
+            var query = _ctx.Usuarios
+                .Where(u => u.TipoUsuario == "Aventureiro")
+                .Select(u => new 
                 {
-                    UsuarioId = g.Key.Id,
-                    Nome = g.Key.Nome,
-                    Classe = g.Key.Classe,
-                    Nivel = g.Key.Nivel,
-                    Reputacao = g.Key.Reputacao,
-                    MissoesConcluidas = concluidas,
-                    MissoesTotais = totais,
-                    TaxaSucesso = taxa,
-                    UltimaAtividade = ultima
-                };
+                    UsuarioId = u.Id,
+                    Nome = u.Nome,
+                    Classe = u.Classe,
+                    Nivel = u.Nivel,
+                    Reputacao = u.Reputacao,
+                    
+                    // EF Core traduz isso perfeitamente para sub-selects no SQL
+                    Totais = _ctx.HistoricoMissoes.Count(h => h.IdUsuario == u.Id),
+                    Concluidas = _ctx.HistoricoMissoes.Count(h => h.IdUsuario == u.Id && h.Resultado == "Concluída"),
+                    UltimaAtividade = _ctx.HistoricoMissoes.Where(h => h.IdUsuario == u.Id).Max(h => (DateTime?)h.DataRegistro)
+                })
+                .Where(x => x.Totais >= minMissoes)
+                .Select(x => new RankingUsuarioItem
+                {
+                    UsuarioId = x.UsuarioId,
+                    Nome = x.Nome,
+                    Classe = x.Classe,
+                    Nivel = x.Nivel,
+                    Reputacao = x.Reputacao,
+                    MissoesTotais = x.Totais,
+                    MissoesConcluidas = x.Concluidas,
+                    TaxaSucesso = x.Totais == 0 ? 0m : (decimal)x.Concluidas / x.Totais,
+                    UltimaAtividade = x.UltimaAtividade
+                });
 
+            // Ordenação Dinâmica
+            query = orderBy?.ToLower() switch
+            {
+                "nivel" => query.OrderByDescending(x => x.Nivel).ThenByDescending(x => x.Reputacao),
+                "concluidas" => query.OrderByDescending(x => x.MissoesConcluidas).ThenByDescending(x => x.Reputacao),
+                _ => query.OrderByDescending(x => x.Reputacao).ThenByDescending(x => x.Nivel) // Padrão
+            };
 
-            // Ordenação: reputação desc, taxa desc, concluidas desc, última atividade desc
             return await query
-                .OrderByDescending(x => x.Reputacao)
-                .ThenByDescending(x => x.TaxaSucesso)
-                .ThenByDescending(x => x.MissoesConcluidas)
-                .ThenByDescending(x => x.UltimaAtividade)
                 .Take(take)
                 .AsNoTracking()
                 .ToListAsync();
@@ -50,41 +58,32 @@ namespace Backend.Repositories
 
         public async Task<List<RankingGrupoItem>> GetTopGruposAsync(int take, int minMissoes)
         {
-            // Base em MissoesAceitas por grupo
-            var qBase =
-                from g in _ctx.Grupos
-                join gu in _ctx.GrupoUsuarios on g.Id equals gu.IdGrupo into membros
-                from m in membros.DefaultIfEmpty()
-                join ma in _ctx.MissoesAceitas on g.Id equals ma.IdGrupo into accs
-                from a in accs.DefaultIfEmpty()
-                select new { Grupo = g, Membro = m, Aceite = a };
-
-            var query =
-                from x in qBase
-                group x by new { x.Grupo.Id, x.Grupo.NomeGrupo } into gg
-                let membrosCount = gg.Select(v => v.Membro).Where(v => v != null).Select(v => v!.IdUsuario).Distinct().Count()
-                let concluidas = gg.Select(v => v.Aceite).Where(v => v != null && v!.StatusMissao == "Concluída").Count()
-                let totais = gg.Select(v => v.Aceite).Where(v => v != null).Count()
-                let taxa = totais == 0 ? 0m : (decimal)concluidas / totais
-                let ultima = gg.Select(v => v.Aceite).Where(v => v != null).Max(v => v!.DataConclusao)
-                where totais >= minMissoes
-                select new RankingGrupoItem
+            // O mesmo padrão de Subconsulta para Grupos
+            var query = _ctx.Grupos
+                .Select(g => new
                 {
-                    GrupoId = gg.Key.Id,
-                    NomeGrupo = gg.Key.NomeGrupo,
-                    Membros = membrosCount,
-                    MissoesConcluidas = concluidas,
-                    MissoesTotais = totais,
-                    TaxaSucesso = taxa,
-                    UltimaAtividade = ultima
-                };
+                    GrupoId = g.Id,
+                    NomeGrupo = g.NomeGrupo,
+                    // Reputacao = g.Reputacao, // Descomente se quiser listar reputação do grupo
+                    MembrosCount = _ctx.Usuarios.Count(u => u.IdGrupo == g.Id),
+                    Totais = _ctx.MissoesAceitas.Count(ma => ma.IdGrupo == g.Id),
+                    Concluidas = _ctx.MissoesAceitas.Count(ma => ma.IdGrupo == g.Id && ma.StatusMissao == "Concluída")
+                })
+                .Where(x => x.Totais >= minMissoes)
+                .Select(x => new RankingGrupoItem
+                {
+                    GrupoId = x.GrupoId,
+                    NomeGrupo = x.NomeGrupo,
+                    Membros = x.MembrosCount,
+                    MissoesTotais = x.Totais,
+                    MissoesConcluidas = x.Concluidas,
+                    TaxaSucesso = x.Totais == 0 ? 0m : (decimal)x.Concluidas / x.Totais
+                });
 
-            // Ordenação: taxa desc, concluidas desc, membros desc, última atividade desc
+            // Ordenação Padrão dos grupos
             return await query
                 .OrderByDescending(x => x.TaxaSucesso)
                 .ThenByDescending(x => x.MissoesConcluidas)
-                .ThenByDescending(x => x.Membros)
-                .ThenByDescending(x => x.UltimaAtividade)
                 .Take(take)
                 .AsNoTracking()
                 .ToListAsync();

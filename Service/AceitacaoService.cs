@@ -104,5 +104,30 @@ namespace Backend.Services
             }
             return registro.Id;
         }
+        //
+        public async Task ConcluirGrupoAsync(int idMissao, int idGrupo, int solicitanteId)
+        {
+            // 1. O usuário que está apertando o botão faz parte da guilda?
+            if (!await _grupos.IsMembroAsync(idGrupo, solicitanteId))
+                throw new UnauthorizedAccessException("Apenas membros do grupo podem concluir esta missão.");
+
+            // 2. O grupo realmente aceitou essa missão antes?
+            var registro = await _aceites.ObterRegistroGrupoAsync(idMissao, idGrupo)
+                ?? throw new KeyNotFoundException("O grupo não possui um registro ativo para esta missão.");
+
+            if (registro.StatusMissao == "Concluída")
+                throw new InvalidOperationException("A missão já foi concluída anteriormente.");
+
+            // 3. Atualizamos a tabela de Aceites e a tabela Principal de Missões
+            await _aceites.AtualizarStatusRegistroAsync(registro.Id, "Concluída");
+            await _missoes.SetStatusAsync(idMissao, "Concluída");
+
+            // 4. A MÁGICA: Recalcular a reputação de todos os membros do grupo instantaneamente!
+            var membros = await _grupos.ListarMembrosAsync(idGrupo);
+            foreach (var membro in membros)
+            {
+                await _reputacao.RecalcularAsync(membro.Id);
+            }
+        }
     }
 }

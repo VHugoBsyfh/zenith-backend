@@ -84,5 +84,34 @@ namespace Backend.Controllers
 
             return Ok(grupos);
         }
+        //
+        [Authorize]
+        [HttpPut("{idGrupo:int}/missoes/{idMissao:int}/concluir")]
+        public async Task<IActionResult> ConcluirGrupo(
+    int idGrupo,
+    int idMissao,
+    [FromServices] AceitacaoService aceitacao)
+        {
+            try
+            {
+                var solicitanteId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+                await aceitacao.ConcluirGrupoAsync(idMissao, idGrupo, solicitanteId);
+
+                return Ok(new { message = "Missão concluída com sucesso por todo o grupo!" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+        }
     }
 }

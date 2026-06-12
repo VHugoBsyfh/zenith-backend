@@ -8,8 +8,9 @@ namespace Backend.Services
         private readonly IRankingRepository _repo;
         public RankingService(IRankingRepository repo) => _repo = repo;
 
-        public Task<List<RankingUsuarioItem>> TopAventureirosAsync(int take, int minMissoes)
-            => _repo.GetTopAventureirosAsync(NormalizeTake(take), Math.Max(0, minMissoes));
+        // Lembre-se de atualizar a Interface IRankingRepository também!
+        public Task<List<RankingUsuarioItem>> TopAventureirosAsync(int take, int minMissoes, string? orderBy)
+            => _repo.GetTopAventureirosAsync(NormalizeTake(take), Math.Max(0, minMissoes), orderBy);
 
         public Task<List<RankingGrupoItem>> TopGruposAsync(int take, int minMissoes)
             => _repo.GetTopGruposAsync(NormalizeTake(take), Math.Max(0, minMissoes));
