@@ -10,5 +10,6 @@ namespace Backend.Repositories.Interfaces
         Task<Usuario?> GetByIdAsync(int id);
         Task AtualizarNivelAsync(int idUsuario, int novoNivel);
         Task<List<Usuario>> ListarAsync(string? role, int? id);
+        Task<decimal> ObterValorAcumuladoAsync(int idUsuario);
     }
 }

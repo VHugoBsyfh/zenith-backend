@@ -3,6 +3,7 @@ using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Backend.Repositories.Interfaces;
 
 namespace Backend.Controllers
 {
@@ -69,6 +70,27 @@ namespace Backend.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Erro ao buscar usuários.", error = ex.Message });
+            }
+        }
+        //
+        [Authorize]
+        [HttpGet("{id}/saldo")]
+        public async Task<IActionResult> ObterSaldoAcumulado(int id, [FromServices] IUsuarioRepository repo)
+        {
+            try
+            {
+                // Opcional: Garantir que o usuário só pode ver o próprio saldo
+                var usuarioLogadoId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                if (usuarioLogadoId != id)
+                    return Forbid("Você só pode ver o seu próprio saldo.");
+
+                var saldo = await repo.ObterValorAcumuladoAsync(id);
+
+                return Ok(new { valorAcumulado = saldo });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Erro ao calcular o saldo: " + ex.Message });
             }
         }
     }

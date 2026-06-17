@@ -51,5 +51,27 @@ namespace Backend.Repositories
 
             return await query.ToListAsync();
         }
+        //
+        public async Task<decimal> ObterValorAcumuladoAsync(int idUsuario)
+        {
+            // 1. Soma o valor das missões Solo concluídas por ele
+            var totalSolo = await _ctx.Missoes
+                .Where(m => m.IdAventureiro == idUsuario && m.Status == "Concluída")
+                .SumAsync(m => m.Recompensa);
+
+            // 2. Acha os grupos que esse usuário faz parte
+            var idsGrupos = await _ctx.GrupoUsuarios
+                .Where(gu => gu.IdUsuario == idUsuario)
+                .Select(gu => gu.IdGrupo)
+                .ToListAsync();
+
+            // 3. Soma o valor das missões em Grupo concluídas pelas guildas dele
+            var totalGrupo = await _ctx.Missoes
+                .Where(m => m.IdGrupo != null && idsGrupos.Contains(m.IdGrupo.Value) && m.Status == "Concluída")
+                .SumAsync(m => m.Recompensa);
+
+            // 4. Retorna a soma de tudo!
+            return totalSolo + totalGrupo;
+        }
     }
 }
